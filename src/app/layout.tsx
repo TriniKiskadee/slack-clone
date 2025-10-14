@@ -3,6 +3,8 @@ import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 import React from "react";
 import ThemeProvider from "@/components/theme-provider";
+import AuthProvider from "@/components/auth-provider";
+import {Toaster} from "@/components/ui/sonner";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -21,23 +23,26 @@ export const metadata: Metadata = {
 
 const RootLayout = ({children,}: Readonly<{ children: React.ReactNode; }>) => {
     return (
-        <html
-            lang={"en"}
-            suppressHydrationWarning
-        >
-            <body
-                className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        <AuthProvider>
+            <html
+                lang={"en"}
+                suppressHydrationWarning
             >
-                <ThemeProvider
-                    attribute={"class"}
-                    defaultTheme={"system"}
-                    enableSystem
-                    disableTransitionOnChange
+                <body
+                    className={`${geistSans.variable} ${geistMono.variable} antialiased`}
                 >
-                    {children}
-                </ThemeProvider>
-            </body>
-        </html>
+                    <ThemeProvider
+                        attribute={"class"}
+                        defaultTheme={"system"}
+                        enableSystem
+                        disableTransitionOnChange
+                    >
+                        {children}
+                    </ThemeProvider>
+                    <Toaster closeButton/>
+                </body>
+            </html>
+        </AuthProvider>
     );
 }
 

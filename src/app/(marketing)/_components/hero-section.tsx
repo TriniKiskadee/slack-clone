@@ -6,17 +6,17 @@ import Image from 'next/image'
 import { TextEffect } from '@/components/ui/text-effect'
 import { AnimatedGroup } from '@/components/ui/animated-group'
 import { HeroHeader } from './header'
-import BackgroundImage from "../../public/companies/night-background.webp"
-import HeroLight from "@/../public/screenshot-light.png"
-import HeroDark from "@/../public/screenshot-dark.png"
-import ArkjetLogo from "@/../public/companies/arcjet.png"
-import KindeLogo from "@/../public/companies/kinde.png"
-import VercelLogo from "@/../public/companies/vercel-logo.svg"
-import NeonDbLogo from "@/../public/companies/neondb.png"
-import OrpcLogo from "@/../public/companies/orpc.webp"
-import PrismaLogo from "@/../public/companies/prisma-logo.svg"
-import MotionLogo from "@/../public/companies/motion-logo.png"
-import OpenAiLogo from "@/../public/companies/openai-logo.png"
+import BackgroundImage from "../../../../public/companies/night-background.webp"
+import HeroLight from "../../../../public/screenshot-light.png"
+import HeroDark from "../../../../public/screenshot-dark.png"
+import ArkjetLogo from "../../../../public/companies/arcjet.png"
+import KindeLogo from "../../../../public/companies/kinde.png"
+import VercelLogo from "../../../../public/companies/vercel-logo.svg"
+import NeonDbLogo from "../../../../public/companies/neondb.png"
+import OrpcLogo from "../../../../public/companies/orpc.webp"
+import PrismaLogo from "../../../../public/companies/prisma-logo.svg"
+import MotionLogo from "../../../../public/companies/motion-logo.png"
+import OpenAiLogo from "../../../../public/companies/openai-logo.png"
 
 
 const transitionVariants = {
@@ -216,7 +216,7 @@ export default function HeroSection() {
                     <div className="group relative m-auto max-w-5xl px-6">
                         <div className="absolute inset-0 z-10 flex scale-95 items-center justify-center opacity-0 duration-500 group-hover:scale-100 group-hover:opacity-100">
                             <Link
-                                href="/"
+                                href="/public"
                                 className="block text-sm duration-150 hover:opacity-75">
                                 <span> Meet Our Customers</span>
 
