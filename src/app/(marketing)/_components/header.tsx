@@ -162,5 +162,3 @@ export const HeroHeader = () => {
         </header>
     )
 }
-
-/*TODO: 1:42:27*/
