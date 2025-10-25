@@ -2,9 +2,11 @@ import type {Metadata} from "next";
 import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 import React from "react";
+import '@/lib/orpc.server' // pre-rendering for SSR
 import ThemeProvider from "@/components/theme-provider";
 import AuthProvider from "@/components/auth-provider";
 import {Toaster} from "@/components/ui/sonner";
+import {QueryProviders} from "@/lib/query/query-provider";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -37,9 +39,14 @@ const RootLayout = ({children,}: Readonly<{ children: React.ReactNode; }>) => {
                         enableSystem
                         disableTransitionOnChange
                     >
-                        {children}
+                        <QueryProviders>
+                            {children}
+                        </QueryProviders>
                     </ThemeProvider>
-                    <Toaster closeButton/>
+                    <Toaster
+                        closeButton
+                        position={"top-center"}
+                    />
                 </body>
             </html>
         </AuthProvider>

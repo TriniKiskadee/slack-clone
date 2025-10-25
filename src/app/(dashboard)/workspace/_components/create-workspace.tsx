@@ -11,31 +11,59 @@ import {
 } from "@/components/ui/dialog";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {Button} from "@/components/ui/button";
-import {PlusIcon} from "lucide-react";
+import {Loader2, PlusIcon} from "lucide-react";
 import {useForm} from "react-hook-form";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {workspaceSchema, workspaceSchemaType} from "@/schemas/workspace-schema";
 import {toast} from "sonner";
-import {Textarea} from "@/components/ui/textarea";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import {orpc} from "@/lib/orpc";
 
 const CreateWorkspace = () => {
     const [open, setOpen] = useState<boolean>(false)
+    const queryClient = useQueryClient();
 
     const form = useForm<workspaceSchemaType>({
         resolver: zodResolver(workspaceSchema),
         mode: "onBlur",
         defaultValues: {
             name: "",
-            description: "",
         }
     });
 
+    const createWorkspaceMutation = useMutation(
+        orpc.workspace.create.mutationOptions({
+            onSuccess: (newWorkspace) => {
+                toast.success("Success", {
+                    description: `Workspace "${newWorkspace.workspaceName}" has been created successfully.`,
+                    id: "create-workspace"
+                })
+
+                queryClient.invalidateQueries({
+                    queryKey: orpc.workspace.list.queryKey(),
+                })
+
+                form.reset()
+                setOpen(false)
+            },
+            onError: () => {
+                toast.error("Oops, something went wrong", {
+                    description: `Failed to create your workspace. Please try again.`,
+                    id: "create-workspace"
+                })
+            }
+        })
+    )
+
     function onSubmit(values: workspaceSchemaType) {
-        toast.success("Created workspace!",{
-            description: JSON.stringify(values, null, 2),
-        });
+        if (createWorkspaceMutation.isPending) {
+            toast.loading("Creating your workspace...", {
+                id: "create-workspace",
+            })
+        }
+        createWorkspaceMutation.mutate(values)
     }
 
     return (
@@ -96,29 +124,23 @@ const CreateWorkspace = () => {
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name={"description"}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>
-                                        Description
-                                        <span className={"text-primary text-xs"}>
-                                            (optional)
-                                        </span>
-                                    </FormLabel>
-                                    <FormControl>
-                                        <Textarea
-                                            placeholder={"Discussion space for backend architecture and deployments"}
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
+                        <Button
+                            type={"submit"}
+                            disabled={createWorkspaceMutation.isPending}
+                            className={"h-10 px-4 flex items-center justify-center"}
+                        >
+                            {createWorkspaceMutation.isPending ? (
+                                <div>
+                                    <Loader2 className={"h-8 animate-spin duration-300"}/>
+                                    <span>
+                                        Creating
+                                    </span>
+                                </div>
+                            ) : (
+                                <p>
+                                    Create Workspace
+                                </p>
                             )}
-                        />
-                        <Button>
-                            Create Workspace
                         </Button>
                     </form>
                 </Form>

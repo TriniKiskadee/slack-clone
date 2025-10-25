@@ -1,3 +1,5 @@
+"use client"
+
 import React from 'react'
 import {
     DropdownMenu,
@@ -10,16 +12,15 @@ import {Button} from "@/components/ui/button";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {cn} from "@/lib/utils";
 import {CreditCardIcon, LogOutIcon, UserIcon} from "lucide-react";
-import {LogoutLink} from "@kinde-oss/kinde-auth-nextjs/components";
-
-// TODO: get user data from db
-const user = {
-    pictureUrl: "https://github.com/shadcn.png",
-    given_name: "Rendo Sama",
-    email: "fake_email@grassmail.com"
-}
+import {LogoutLink, PortalLink} from "@kinde-oss/kinde-auth-nextjs/components";
+import {useSuspenseQuery} from "@tanstack/react-query";
+import {orpc} from "@/lib/orpc";
+import {getAvatar} from "@/lib/get-avatar";
+import {KindeUser} from "@kinde-oss/kinde-auth-nextjs";
 
 const UserNav = () => {
+    const {data: {user}} = useSuspenseQuery(orpc.workspace.list.queryOptions())
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -28,7 +29,10 @@ const UserNav = () => {
                     size={"icon"}
                     className={"size-12 rounded-xl hover:rounded-lg transition-all duration-200 bg-background/50 border-border/50 hover:bg-accent hover:text-accent-foreground"}
                 >
-                    <UserAvatar isContent={false} />
+                    <UserAvatar
+                        isContent={false}
+                        user={user}
+                    />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -38,7 +42,10 @@ const UserNav = () => {
                 content={"w-[200px]"}
             >
                 <DropdownMenuLabel className={"font-normal flex items-center gap-2 px-1 py-1.5 text-left text-sm"}>
-                    <UserAvatar isContent={true}/>
+                    <UserAvatar
+                        isContent={false}
+                        user={user}
+                    />
                     <div className={"grid flex-1 text-left text-sm leading-tight"}>
                         <p className={"truncate"}>
                             {user.given_name}
@@ -50,13 +57,17 @@ const UserNav = () => {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                    <DropdownMenuItem>
-                        <UserIcon />
-                        Account
+                    <DropdownMenuItem asChild>
+                        <PortalLink>
+                            <UserIcon />
+                            Account
+                        </PortalLink>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
-                        <CreditCardIcon />
-                        Billing
+                    <DropdownMenuItem asChild>
+                        <PortalLink>
+                            <CreditCardIcon />
+                            Billing
+                        </PortalLink>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
@@ -73,16 +84,16 @@ const UserNav = () => {
 
 export default UserNav;
 
-const UserAvatar = ({isContent}: {isContent: boolean}) => {
+const UserAvatar = ({isContent, user}: {isContent: boolean; user: KindeUser<Record<string, unknown>>}) => {
     return (
         <Avatar className={cn(isContent ? "relative size-8 rounded-lg" : "")}>
             <AvatarImage
-                src={user.pictureUrl}
+                src={getAvatar(user.picture, user.email!)}
                 alt={"User Image"}
                 className={"object-cover"}
             />
             <AvatarFallback>
-                {user.given_name.slice(0, 2).toUpperCase()}
+                {user.given_name!.slice(0, 2).toUpperCase()}
             </AvatarFallback>
         </Avatar>
     )
