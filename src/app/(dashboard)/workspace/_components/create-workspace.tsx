@@ -76,16 +76,16 @@ const CreateWorkspace = () => {
                     description: `Failed to create your workspace. Please try again.`,
                     id: "create-workspace"
                 })
+            },
+            onMutate: () => {
+                toast.loading("Creating workspace...", {
+                    id: "create-workspace"
+                })
             }
         })
     )
 
     function onSubmit(values: workspaceSchemaType) {
-        if (createWorkspaceMutation.isPending) {
-            toast.loading("Creating your workspace...", {
-                id: "create-workspace",
-            })
-        }
         createWorkspaceMutation.mutate(values)
     }
 

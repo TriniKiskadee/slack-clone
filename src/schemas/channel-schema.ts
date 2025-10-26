@@ -1,5 +1,4 @@
 import z from "zod";
-import {workspaceSchema} from "@/schemas/workspace-schema";
 
 export function transformChannelName(name: string) {
     return name
@@ -10,7 +9,7 @@ export function transformChannelName(name: string) {
         .replace(/^-|-$/g, "") // Replace leading/trailing dashes
 }
 
-export const ChannelSchema = z.object({
+export const channelSchema = z.object({
     name: z
         .string()
         .min(3, "Channel name must be at least 3 characters long")
@@ -30,4 +29,4 @@ export const ChannelSchema = z.object({
         })
 })
 
-export type channelSchemaType = z.infer<typeof ChannelSchema>
+export type channelSchemaType = z.infer<typeof channelSchema>

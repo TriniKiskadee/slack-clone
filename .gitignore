@@ -43,3 +43,5 @@ next-env.d.ts
 
 # Jetbrains
 .idea
+
+/src/generated/prisma

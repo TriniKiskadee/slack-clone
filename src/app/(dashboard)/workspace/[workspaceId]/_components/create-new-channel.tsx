@@ -12,23 +12,57 @@ import {
 import {Button} from "@/components/ui/button";
 import {Loader2, PlusIcon} from "lucide-react";
 import {useForm} from "react-hook-form";
-import {ChannelSchema, channelSchemaType, transformChannelName} from "@/schemas/channel-schema";
+import {channelSchema, channelSchemaType, transformChannelName} from "@/schemas/channel-schema";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
-import {workspaceSchemaType} from "@/schemas/workspace-schema";
 import {toast} from "sonner";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import {orpc} from "@/lib/orpc";
+import {isDefinedError} from "@orpc/client";
 
 const CreateNewChannel = () => {
     const [open, setOpen] = useState<boolean>(false)
+    const queryClient = useQueryClient();
 
     const form = useForm<channelSchemaType>({
-        resolver: zodResolver(ChannelSchema),
+        resolver: zodResolver(channelSchema),
         defaultValues: {
             name: ""
         },
         mode: "onBlur"
     })
+
+    const createChannelMutation = useMutation(
+        orpc.channel.create.mutationOptions({
+            onSuccess: (newChannel) => {
+                toast.success(`Channel ${newChannel.name} created successfully!`, {
+                    id: "channel-created"
+                })
+                queryClient.invalidateQueries({
+                    queryKey: orpc.channel.list.queryKey()
+                })
+                form.reset()
+                setOpen(false)
+            },
+            onError: (error) => {
+                if (isDefinedError(error)) {
+                    toast.error(error.message, {
+                        id: "channel-created"
+                    })
+                    return
+                }
+                toast.error("Failed to create channel. Please try again.", {
+                    id: "channel-created"
+                })
+            },
+            onMutate: () => {
+                toast.loading("Creating channel...", {
+                    id: "channel-created"
+                })
+            }
+        })
+    )
 
     // reset form on Dialog close
     useEffect(() => {
@@ -37,13 +71,8 @@ const CreateNewChannel = () => {
         }
     }, [open, form])
 
-    function onSubmit(values: workspaceSchemaType) {
-        /*if (createWorkspaceMutation.isPending) {
-            toast.loading("Creating your workspace...", {
-                id: "create-workspace",
-            })
-        }
-        createWorkspaceMutation.mutate(values)*/
+    function onSubmit(values: channelSchemaType) {
+        createChannelMutation.mutate(values)
     }
 
     const watchedName = form.watch("name")
@@ -108,11 +137,10 @@ const CreateNewChannel = () => {
                         />
                         <Button
                             type={"submit"}
-                            disabled={true} // TODO: get isPending from oRPC
+                            disabled={createChannelMutation.isPending}
                             className={"h-10 px-4 flex items-center justify-center"}
                         >
-                            {/* TODO: get isPending from oRPC*/}
-                            {false ? (
+                            {createChannelMutation.isPending ? (
                                 <div className={"flex items-center justify-center mx-4 gap-2"}>
                                     <Loader2 className={"h-8 animate-spin duration-300"}/>
                                     <span>
