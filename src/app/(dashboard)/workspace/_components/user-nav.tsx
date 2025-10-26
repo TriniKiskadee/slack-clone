@@ -11,7 +11,7 @@ import {
 import {Button} from "@/components/ui/button";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {cn} from "@/lib/utils";
-import {CreditCardIcon, LogOutIcon, UserIcon} from "lucide-react";
+import {CreditCardIcon, LogOutIcon, UserIcon, UserRound} from "lucide-react";
 import {LogoutLink, PortalLink} from "@kinde-oss/kinde-auth-nextjs/components";
 import {useSuspenseQuery} from "@tanstack/react-query";
 import {orpc} from "@/lib/orpc";
@@ -86,7 +86,7 @@ export default UserNav;
 
 const UserAvatar = ({isContent, user}: {isContent: boolean; user: KindeUser<Record<string, unknown>>}) => {
     return (
-        <Avatar className={cn(isContent ? "relative size-8 rounded-lg" : "")}>
+        <Avatar className={cn("relative", isContent ? "size-8 rounded-lg" : "")}>
             <AvatarImage
                 src={getAvatar(user.picture, user.email!)}
                 alt={"User Image"}
@@ -95,6 +95,11 @@ const UserAvatar = ({isContent, user}: {isContent: boolean; user: KindeUser<Reco
             <AvatarFallback>
                 {user.given_name!.slice(0, 2).toUpperCase()}
             </AvatarFallback>
+            {!user.picture && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <UserRound className="size-4 text-white/80" />
+                </div>
+            )}
         </Avatar>
     )
 }

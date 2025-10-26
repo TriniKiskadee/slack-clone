@@ -1,6 +1,6 @@
 "use client"
 
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {
     Dialog,
     DialogContent,
@@ -20,6 +20,7 @@ import {workspaceSchema, workspaceSchemaType} from "@/schemas/workspace-schema";
 import {toast} from "sonner";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {orpc} from "@/lib/orpc";
+import {isDefinedError} from "@orpc/client";
 
 const CreateWorkspace = () => {
     const [open, setOpen] = useState<boolean>(false)
@@ -32,6 +33,13 @@ const CreateWorkspace = () => {
             name: "",
         }
     });
+
+    // reset form on Dialog close
+    useEffect(() => {
+        if (!open) {
+            form.reset()
+        }
+    }, [open, form])
 
     const createWorkspaceMutation = useMutation(
         orpc.workspace.create.mutationOptions({
@@ -48,7 +56,22 @@ const CreateWorkspace = () => {
                 form.reset()
                 setOpen(false)
             },
-            onError: () => {
+            onError: (error) => {
+                if (isDefinedError(error)) {
+                    if (error.code === "RATE_LIMITED") {
+                        toast.error(error.message, {
+                            description: "",
+                            id: "create-workspace"
+                        })
+                        return
+                    }
+
+                    toast.error(error.message, {
+                        description: "",
+                        id: "create-workspace"
+                    })
+                    return
+                }
                 toast.error("Oops, something went wrong", {
                     description: `Failed to create your workspace. Please try again.`,
                     id: "create-workspace"
@@ -130,10 +153,10 @@ const CreateWorkspace = () => {
                             className={"h-10 px-4 flex items-center justify-center"}
                         >
                             {createWorkspaceMutation.isPending ? (
-                                <div>
+                                <div className={"flex items-center justify-center mx-4 gap-2"}>
                                     <Loader2 className={"h-8 animate-spin duration-300"}/>
                                     <span>
-                                        Creating
+                                        Creating...
                                     </span>
                                 </div>
                             ) : (

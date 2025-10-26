@@ -41,14 +41,15 @@ const WorkspaceList = () => {
                     return (
                         <Tooltip key={ws.id}>
                             <TooltipTrigger asChild>
-                                <LoginLink orgCode={ws.id}>
+                                <LoginLink orgCode={!isActive ? ws.id : ""}>
                                     <Button
                                         size={"icon"}
                                         className={cn(
                                             "size-12 transition-all duration-200 cursor-pointer",
                                             getWorkspaceColor(ws.id),
-                                            isActive ? "rounded-lg" : "rounded-xl hover:rounded-lg"
+                                            isActive ? "rounded-lg border border-border" : "rounded-xl hover:rounded-lg"
                                         )}
+                                        disabled={!isActive}
                                     >
                                         <span className={"text-sm font-semibold"}>
                                             {ws.avatar}
