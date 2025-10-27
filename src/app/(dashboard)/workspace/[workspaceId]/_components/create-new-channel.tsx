@@ -160,5 +160,3 @@ const CreateNewChannel = () => {
     )
 }
 export default CreateNewChannel
-
-/*TODO: 6:20:28*/
