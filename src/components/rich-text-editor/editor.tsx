@@ -1,14 +1,34 @@
 "use client"
 
-import React from 'react'
+import React, {ReactNode} from 'react'
 
 import {EditorContent, useEditor} from "@tiptap/react"
 import {editorExtensions} from "@/components/rich-text-editor/extensions";
 import MenuBar from "@/components/rich-text-editor/menu-bar";
 
-const RichTextEditor = () => {
+interface iEditorProps {
+    field: any,
+    sendButton: ReactNode
+    footerLeft?: ReactNode
+}
+
+const RichTextEditor = ({field, sendButton, footerLeft}: iEditorProps) => {
     const editor = useEditor({
         immediatelyRender: false,
+        content: (() => {
+            if (!field?.value) return ""
+
+            try {
+                return JSON.parse(field.value)
+            } catch {
+                return ""
+            }
+        })(),
+        onUpdate: ({editor}) => {
+            if (field?.onChange) {
+                field.onChange(JSON.stringify(editor.getJSON()))
+            }
+        },
         extensions: editorExtensions,
         editorProps: {
             attributes: {
@@ -24,9 +44,15 @@ const RichTextEditor = () => {
                 editor={editor}
                 className={"max-h-[200px] overflow-y-auto"}
             />
+            <div className={"flex items-center justify-between gap-2 px-3 py-2 border-t border-input bg-card"}>
+                <div className={"min-h-8 flex items-center"}>
+                    {footerLeft}
+                </div>
+                <div className={"shrink-0"}>
+                    {sendButton}
+                </div>
+            </div>
         </div>
     )
 }
 export default RichTextEditor
-
-/* TODO: 8:44:27 */
