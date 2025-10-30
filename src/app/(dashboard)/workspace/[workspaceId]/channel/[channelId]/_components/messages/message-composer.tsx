@@ -6,17 +6,21 @@ import {ImageIcon, SendIcon} from "lucide-react";
 interface iMessageComposerProps {
     value: string
     onChange: (next: string) => void
+    onSubmit: () => void
+    isSubmitting?: boolean
 }
 
-const MessageComposer = ({value, onChange}: iMessageComposerProps) => {
+const MessageComposer = ({value, onChange, onSubmit, isSubmitting}: iMessageComposerProps) => {
     return (
         <>
             <RichTextEditor
                 field={{value, onChange}}
                 sendButton={
                     <Button
+                        disabled={isSubmitting}
                         type={"button"}
                         size={"sm"}
+                        onClick={onSubmit}
                     >
                         <SendIcon className={"size-4 mr-1"}/>
                         Send

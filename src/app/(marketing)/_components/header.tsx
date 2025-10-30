@@ -8,6 +8,7 @@ import Logo from "@/../public/logo.png"
 import Image from "next/image";
 import {RegisterLink, LoginLink, LogoutLink} from "@kinde-oss/kinde-auth-nextjs/components";
 import {useKindeBrowserClient} from "@kinde-oss/kinde-auth-nextjs";
+import {Skeleton} from "@/components/ui/skeleton";
 
 const menuItems = [
     { name: 'Features', href: '#link' },
@@ -98,7 +99,23 @@ export const HeroHeader = () => {
                                     ))}
                                 </ul>
                             </div>
-                            {isLoading ? null : (
+                            {isLoading ? (
+                                <div className={"flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit"}>
+                                    <>
+                                        <Skeleton
+                                            className={buttonVariants({
+                                                className: "w-[92.97px] h-[32px]"
+                                            })}
+                                        />
+                                        <Skeleton
+                                            className={buttonVariants({
+                                                variant: "outline",
+                                                className: "w-[71.23px] h-[32px]"
+                                            })}
+                                        />
+                                    </>
+                                </div>
+                            ) : (
                                 <div className={"flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit"}>
                                     {user ? (
                                         <>

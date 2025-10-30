@@ -8,6 +8,7 @@ import prisma from "@/lib/prisma";
 import {createMessageSchema} from "@/schemas/message-schema";
 import {getAvatar} from "@/lib/get-avatar";
 import {Message} from "@/generated/prisma/client";
+import {readSecurityMiddleware} from "@/app/middlewares/arkjet/read";
 
 export const createMessage = base
     .use(requiredAuthMiddleware)
@@ -55,15 +56,37 @@ export const listMessage = base
     .use(requiredAuthMiddleware)
     .use(requiredWorkspaceMiddleware)
     .use(standardSecurityMiddleware)
-    .use(writeSecurityMiddleware)
+    .use(readSecurityMiddleware)
     .route({
         method: "GET",
         path: "/messages",
         summary: "List all message",
         tags: ["messages"]
     })
-    .input(z.void())
-    .output(z.custom<Message>())
+    .input(z.object({
+        channelId: z.string()
+    }))
+    .output(z.array(z.custom<Message>()))
     .handler(async ({input, context, errors}) => {
-        return
+        const channel = await prisma.channel.findFirst({
+            where: {
+                id: input.channelId,
+                workspaceId: context.workspace.orgCode
+            }
+        })
+        if (!channel) {
+            throw errors.FORBIDDEN()
+        }
+
+        const messages = await prisma.message.findMany({
+            where: {
+                authorId: context.user.id,
+                channelId: input.channelId
+            },
+            orderBy: {
+                createdAt: "desc"
+            }
+        })
+
+        return messages
     })

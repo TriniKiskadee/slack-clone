@@ -7,7 +7,7 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {createMessageSchema, CreateMessageSchemaType} from "@/schemas/message-schema";
 import MessageComposer
     from "@/app/(dashboard)/workspace/[workspaceId]/channel/[channelId]/_components/messages/message-composer";
-import {useMutation} from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {orpc} from "@/lib/orpc";
 import {toast} from "sonner";
 
@@ -16,6 +16,7 @@ interface iMessageInputFormProps {
 }
 
 const MessageInputForm = ({channelId}: iMessageInputFormProps) => {
+    const queryClient = useQueryClient();
     const form = useForm<CreateMessageSchemaType>({
         resolver: zodResolver(createMessageSchema),
         defaultValues: {
@@ -26,11 +27,21 @@ const MessageInputForm = ({channelId}: iMessageInputFormProps) => {
 
     const createMessageMutation = useMutation(
         orpc.message.create.mutationOptions({
-            onSuccess: async (data) => {
-                return toast.success("Message created successfully.");
+            onSuccess: async () => {
+                queryClient.invalidateQueries({
+                    queryKey: orpc.message.list.key()
+                });
+                form.reset()
+                return toast.success("Message created successfully.", {
+                    id: "create-message"
+                });
+
             },
             onError: async (error) => {
-                return toast.error("Something went wrong.");
+                return toast.error("Something went wrong.", {
+                    description: error.message,
+                    id: "create-message"
+                });
             },
         })
     )
@@ -40,7 +51,6 @@ const MessageInputForm = ({channelId}: iMessageInputFormProps) => {
     }
 
     return (
-
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
                 <FormField
@@ -52,6 +62,8 @@ const MessageInputForm = ({channelId}: iMessageInputFormProps) => {
                                 <MessageComposer
                                     value={field.value}
                                     onChange={field.onChange}
+                                    onSubmit={() => onSubmit(form.getValues())}
+                                    isSubmitting={createMessageMutation.isPending}
                                 />
                             </FormControl>
                             <FormMessage />
