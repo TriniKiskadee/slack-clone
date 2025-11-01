@@ -1,18 +1,22 @@
-import React, {PropsWithChildren} from 'react'
+import React, { PropsWithChildren } from "react";
 import WorkspaceList from "@/app/(dashboard)/workspace/_components/workspace-list";
 import CreateWorkspace from "@/app/(dashboard)/workspace/_components/create-workspace";
-import {Separator} from "@/components/ui/separator";
+import { Separator } from "@/components/ui/separator";
 import UserNav from "@/app/(dashboard)/workspace/_components/user-nav";
-import {orpc} from "@/lib/orpc";
-import {getQueryClient, HydrateClient} from "@/lib/query/hydration";
+import { orpc } from "@/lib/orpc";
+import { getQueryClient, HydrateClient } from "@/lib/query/hydration";
 
-const WorkspaceLayout = async ({children}: PropsWithChildren) => {
+const WorkspaceLayout = async ({ children }: PropsWithChildren) => {
     const queryClient = getQueryClient();
-    await queryClient.prefetchQuery(orpc.workspace.list.queryOptions())
+    await queryClient.prefetchQuery(orpc.workspace.list.queryOptions());
 
     return (
         <div className={"flex w-full h-screen"}>
-            <div className={"flex h-full w-16 flex-col items-center bg-secondary py-3 px-2 border-r border-border"}>
+            <div
+                className={
+                    "flex h-full w-16 flex-col items-center bg-secondary py-3 px-2 border-r border-border"
+                }
+            >
                 <HydrateClient client={queryClient}>
                     <WorkspaceList />
                 </HydrateClient>
@@ -28,6 +32,6 @@ const WorkspaceLayout = async ({children}: PropsWithChildren) => {
             </div>
             {children}
         </div>
-    )
-}
-export default WorkspaceLayout
+    );
+};
+export default WorkspaceLayout;
