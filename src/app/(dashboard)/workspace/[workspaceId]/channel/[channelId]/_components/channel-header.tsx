@@ -8,7 +8,7 @@ const ChannelHeader = () => {
             <div className={"flex items-center space-x-2"}>
                 <AnimatedThemeToggler
                     className={
-                        "bg-white border-[1px] border-black text-black dark:bg-[#0A0A0A] dark:border-[1px] dark:border-white dark:text-white"
+                        "border-[1px] bg-secondary text-black dark:bg-[#0A0A0A] dark:text-white dark:hover:bg-primary"
                     }
                 />
             </div>

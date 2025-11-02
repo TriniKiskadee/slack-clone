@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, {useState} from "react";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,6 +9,7 @@ import MessageComposer from "@/app/(dashboard)/workspace/[workspaceId]/channel/[
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { orpc } from "@/lib/orpc";
 import { toast } from "sonner";
+import {useAttachmentUpload} from "@/hooks/use-attachment-upload";
 
 interface iMessageInputFormProps {
     channelId: string;
@@ -16,6 +17,10 @@ interface iMessageInputFormProps {
 
 const MessageInputForm = ({ channelId }: iMessageInputFormProps) => {
     const queryClient = useQueryClient();
+    const [editorKey, setEditorKey] = useState<number>(0)
+    const upload = useAttachmentUpload()
+
+
     const form = useForm<CreateMessageSchemaType>({
         resolver: zodResolver(createMessageSchema),
         defaultValues: {
@@ -27,11 +32,15 @@ const MessageInputForm = ({ channelId }: iMessageInputFormProps) => {
     const createMessageMutation = useMutation(
         orpc.message.create.mutationOptions({
             onSuccess: async () => {
-                queryClient.invalidateQueries({
+                await queryClient.invalidateQueries({
                     queryKey: orpc.message.list.key(),
                 });
-                form.reset();
-                form.resetField("content");
+                form.reset({
+                    channelId: channelId,
+                    content: ""
+                });
+                upload.clear()
+                setEditorKey((key) => key + 1)
                 // return toast.success("Message created successfully.", {
                 //     id: "create-message"
                 // });
@@ -46,7 +55,10 @@ const MessageInputForm = ({ channelId }: iMessageInputFormProps) => {
     );
 
     function onSubmit(values: CreateMessageSchemaType) {
-        createMessageMutation.mutate(values);
+        createMessageMutation.mutate({
+            ...values,
+            imageUrl: upload.stagedUrl ?? undefined
+        });
     }
 
     return (
@@ -59,7 +71,9 @@ const MessageInputForm = ({ channelId }: iMessageInputFormProps) => {
                         <FormItem>
                             <FormControl>
                                 <MessageComposer
+                                    key={editorKey}
                                     value={field.value}
+                                    upload={upload}
                                     onChange={field.onChange}
                                     onSubmit={() => onSubmit(form.getValues())}
                                     isSubmitting={createMessageMutation.isPending}
@@ -74,5 +88,3 @@ const MessageInputForm = ({ channelId }: iMessageInputFormProps) => {
     );
 };
 export default MessageInputForm;
-
-/* TODO: 11:19:19 */
