@@ -1,10 +1,12 @@
 import React from "react";
-import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import {AnimatedThemeToggler} from "@/components/ui/animated-theme-toggler";
+import {useParams} from "next/navigation";
 
 const ChannelHeader = () => {
+    const {channelId} = useParams<{ channelId: string }>()
     return (
         <div className={"flex items-center justify-between h-14 px-4 border-b"}>
-            <h1 className={"text-lg font-semibold"}># generic-channel-name</h1>
+            <h1 className={"text-lg font-semibold"}># {channelId}</h1>
             <div className={"flex items-center space-x-2"}>
                 <AnimatedThemeToggler
                     className={

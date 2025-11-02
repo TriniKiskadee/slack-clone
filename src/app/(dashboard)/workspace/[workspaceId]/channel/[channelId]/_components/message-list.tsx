@@ -2,12 +2,13 @@
 
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import MessageItem from "@/app/(dashboard)/workspace/[workspaceId]/channel/[channelId]/_components/messages/message-item";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { orpc } from "@/lib/orpc";
 import { useParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
-import { trackSynchronousRequestDataAccessInDev } from "next/dist/server/app-render/dynamic-rendering";
 import { Button } from "@/components/ui/button";
+import EmptyState from "@/components/general/empty-state";
+import {ChevronDownIcon, Loader2, MessageCircleIcon} from "lucide-react";
 
 const MessageList = () => {
     const [hasInitialScrolled, setHasInitialScrolled] = useState<boolean>(false);
@@ -23,11 +24,11 @@ const MessageList = () => {
     const isNearBottom = (el: HTMLDivElement) =>
         el.scrollHeight - el.scrollTop - el.clientHeight <= 80;
 
-    const infinitOptions = orpc.message.list.infiniteOptions({
+    const infiniteOptions = orpc.message.list.infiniteOptions({
         input: (pageParam: string | undefined) => ({
             channelId: channelId,
             cursor: pageParam,
-            limit: 30,
+            limit: 10,
         }),
         initialPageParam: undefined,
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -41,7 +42,7 @@ const MessageList = () => {
 
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, isLoading, error } =
         useInfiniteQuery({
-            ...infinitOptions,
+            ...infiniteOptions,
             staleTime: 30_000,
             refetchOnWindowFocus: false,
         });
@@ -57,7 +58,7 @@ const MessageList = () => {
             fetchNextPage().then(() => {
                 const newScrollHeight = el.scrollHeight;
 
-                el.scrollTop = el.scrollHeight - prevScrollHeight + prevScrollTop;
+                el.scrollTop = newScrollHeight - prevScrollHeight + prevScrollTop;
             });
         }
         setIsAtBottom(isNearBottom(el));
@@ -66,6 +67,8 @@ const MessageList = () => {
     const items = useMemo(() => {
         return data?.pages.flatMap((p) => p.items) ?? [];
     }, [data]);
+
+    const isEmpty = !isLoading && !error && items.length === 0;
 
     useEffect(() => {
         if (!items.length) return;
@@ -90,12 +93,13 @@ const MessageList = () => {
         lastItemIdRef.current = lastId;
     }, [items]);
 
+    /* Scroll to the bottom when messages first load*/
     useEffect(() => {
         if (!hasInitialScrolled && data?.pages.length) {
             const el = scrollRef.current;
 
             if (el) {
-                el.scrollTop = el.scrollHeight;
+                bottomRef.current?.scrollIntoView({block: "end"})
                 setHasInitialScrolled(true);
                 setIsAtBottom(true);
             }
@@ -106,10 +110,58 @@ const MessageList = () => {
         const el = scrollRef.current;
         if (!el) return;
 
-        el.scrollTop = el.scrollHeight;
+        bottomRef.current?.scrollIntoView({block: "end"})
+
         setNewMessage(false);
         setIsAtBottom(true);
     };
+
+    // Keep view pinned to bottom on late content growth (e.g. images)
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+
+        const scrollToBottomIfNeeded = () => {
+            if(isAtBottom || !hasInitialScrolled) {
+                requestAnimationFrame(() => {
+                    bottomRef.current?.scrollIntoView({block: "end"})
+                })
+            }
+        }
+
+        const onImageLoad = (e: Event) => {
+            if (e.target instanceof HTMLImageElement) {
+                scrollToBottomIfNeeded()
+            }
+        }
+
+        el.addEventListener("load", onImageLoad, true)
+
+        // ResizeObserver watches for size changes in the container
+        const resizeObserver = new ResizeObserver(() => {
+            scrollToBottomIfNeeded()
+        })
+
+        resizeObserver.observe(el)
+
+        // MutationObserver watched for DOM changes (e.g. images loading, content updates)
+        const mutationObserver = new MutationObserver(() => {
+            scrollToBottomIfNeeded()
+        })
+
+        mutationObserver.observe(el, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            characterData: true,
+        })
+
+        return () => {
+            resizeObserver.disconnect();
+            el.removeEventListener("load", onImageLoad, true);
+            mutationObserver.disconnect();
+        }
+    }, [isAtBottom, hasInitialScrolled]);
 
     return (
         <div className={"relative h-full"}>
@@ -118,12 +170,24 @@ const MessageList = () => {
                 ref={scrollRef}
                 onScroll={handleScroll}
             >
-                {items?.map((message) => (
-                    <MessageItem key={message.id} message={message} />
-                ))}
+                {isEmpty ? (
+                    <div className={"flex h-full pt-4"}>
+                        <EmptyState
+                            icon={MessageCircleIcon}
+                            title={"It's empty in here!"}
+                            description={"Start your first conversation to begin"}
+                            buttonText={"Send a message"}
+                            href={"#"}
+                        />
+                    </div>
+                ) : (
+                    items?.map((message) => (
+                        <MessageItem key={message.id} message={message} />
+                    ))
+                )}
 
                 <div ref={bottomRef} />
-                {isFetching && !isFetchingNextPage ? (
+                {!isEmpty && isFetching && !isFetchingNextPage ? (
                     <div className={"py-2 text-center text-sm text-muted-foreground"}>
                         {/*Fetching...*/}
                         {Array.from({ length: 3 }).map((_, index) => (
@@ -145,16 +209,31 @@ const MessageList = () => {
                     </div>
                 ) : null}
             </div>
-            {newMessage && !isAtBottom ? (
+
+            {isFetchingNextPage && (
+                <div className={"pointer-events-none absolute top-0 left-0 right-0 z-20 flex items-center justify-center py-2"}>
+                    <div className={"flex items-center gap-2 rounded-md bg-gradient-to-b from-white/80 to-transparent dark:from-neutral-900/80 backdrop-blur px-3 py-1"}>
+                        <Loader2 className={"size-4 animate-spin text-muted-foreground"}/>
+                        <span>
+                            Loading...
+                        </span>
+                    </div>
+                </div>
+            )}
+
+            {!isAtBottom && (
                 <Button
                     type={"button"}
-                    className={"absolute bottom-4 right-8 rounded-full"}
                     onClick={scrollToBottom}
+                    size={"sm"}
+                    className={"absolute bottom-4 right-5 z-20 size-10 rounded-full hover:shadow-xl transition-all duration-200"}
                 >
-                    New Messages
+                    <ChevronDownIcon />
                 </Button>
-            ) : null}
+            )}
         </div>
     );
 };
 export default MessageList;
+
+/* TODO: 2:15:56 */

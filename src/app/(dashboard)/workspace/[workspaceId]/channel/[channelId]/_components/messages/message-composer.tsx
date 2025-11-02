@@ -22,7 +22,7 @@ const MessageComposer = ({ value, onChange, onSubmit, isSubmitting, upload }: iM
                 field={{ value, onChange }}
                 sendButton={
                     <Button
-                        disabled={isSubmitting || !value}
+                        disabled={isSubmitting}
                         type={"button"}
                         size={"sm"}
                         onClick={onSubmit}
