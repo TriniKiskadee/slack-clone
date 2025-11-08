@@ -10,16 +10,25 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { orpc } from "@/lib/orpc";
 import { toast } from "sonner";
 import {useAttachmentUpload} from "@/hooks/use-attachment-upload";
+import {Message} from "@/generated/prisma/client";
+import {InfiniteData} from "@tanstack/react-query";
+import {KindeUser} from "@kinde-oss/kinde-auth-nextjs";
 
 interface iMessageInputFormProps {
     channelId: string;
+    user: KindeUser<Record<string, unknown>>
 }
 
-const MessageInputForm = ({ channelId }: iMessageInputFormProps) => {
+type MessagePage = {
+    items: Message[]
+    nextCursor?: string;
+}
+type InfiniteMessages = InfiniteData<MessagePage>
+
+const MessageInputForm = ({ channelId, user }: iMessageInputFormProps) => {
     const queryClient = useQueryClient();
     const [editorKey, setEditorKey] = useState<number>(0)
     const upload = useAttachmentUpload()
-
 
     const form = useForm<CreateMessageSchemaType>({
         resolver: zodResolver(createMessageSchema),
@@ -31,6 +40,31 @@ const MessageInputForm = ({ channelId }: iMessageInputFormProps) => {
 
     const createMessageMutation = useMutation(
         orpc.message.create.mutationOptions({
+            onMutate: async (data) => {
+                await queryClient.cancelQueries({
+                    queryKey: ["message.list", channelId],
+                })
+
+                const prevData = queryClient.getQueryData<InfiniteMessages>([
+                    "message.list",
+                    channelId
+                ])
+
+                const tempId = `optimistic-${crypto.randomUUID()}`
+
+                const optimisticMessage: Message = {
+                    id: tempId,
+                    content: data.content,
+                    imageUrl: data.imageUrl ?? null,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    authorId: user.id,
+                    authorName: user.username || "",
+                    authorEmail: user.email!,
+                    authorAvatar: user.picture || "",
+                    channelId: channelId,
+                }
+            },
             onSuccess: async () => {
                 await queryClient.invalidateQueries({
                     queryKey: orpc.message.list.key(),

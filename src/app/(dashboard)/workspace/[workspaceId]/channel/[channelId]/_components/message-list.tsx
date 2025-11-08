@@ -30,6 +30,7 @@ const MessageList = () => {
             cursor: pageParam,
             limit: 10,
         }),
+        queryKey: ["message.list", channelId],
         initialPageParam: undefined,
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         select: (messages) => ({
@@ -235,5 +236,3 @@ const MessageList = () => {
     );
 };
 export default MessageList;
-
-/* TODO: 2:15:56 */
