@@ -5,11 +5,11 @@ import { Message } from "@/generated/prisma/client";
 import { getAvatar } from "@/lib/get-avatar";
 import SafeContent from "@/components/rich-text-editor/safe-content";
 
-interface iAppProps {
+interface MessageItemProps {
     message: Message;
 }
 
-const MessageItem = ({ message }: iAppProps) => {
+const MessageItem = ({ message }: MessageItemProps) => {
     return (
         <div className={"flex space-x-3 relative p-3 rounded-lg group hover:bg-muted/50"}>
             <Image

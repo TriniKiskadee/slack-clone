@@ -182,12 +182,16 @@ const MessageList = () => {
                         />
                     </div>
                 ) : (
-                    items?.map((message) => (
-                        <MessageItem key={message.id} message={message} />
+                    items.map((message) => (
+                        <MessageItem
+                            key={message.id}
+                            message={message}
+                        />
                     ))
                 )}
 
                 <div ref={bottomRef} />
+
                 {!isEmpty && isFetching && !isFetchingNextPage ? (
                     <div className={"py-2 text-center text-sm text-muted-foreground"}>
                         {/*Fetching...*/}

@@ -51,5 +51,3 @@ const ChannelMainPage = () => {
     )
 }
 export default ChannelMainPage
-
-/* TODO: 2:38:04 */

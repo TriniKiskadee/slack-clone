@@ -13,6 +13,7 @@ import {useAttachmentUpload} from "@/hooks/use-attachment-upload";
 import {Message} from "@/generated/prisma/client";
 import {InfiniteData} from "@tanstack/react-query";
 import {KindeUser} from "@kinde-oss/kinde-auth-nextjs";
+import {getAvatar} from "@/lib/get-avatar";
 
 interface iMessageInputFormProps {
     channelId: string;
@@ -45,9 +46,9 @@ const MessageInputForm = ({ channelId, user }: iMessageInputFormProps) => {
                     queryKey: ["message.list", channelId],
                 })
 
-                const prevData = queryClient.getQueryData<InfiniteMessages>([
+                const previousData = queryClient.getQueryData<InfiniteMessages>([
                     "message.list",
-                    channelId
+                    channelId,
                 ])
 
                 const tempId = `optimistic-${crypto.randomUUID()}`
@@ -59,11 +60,50 @@ const MessageInputForm = ({ channelId, user }: iMessageInputFormProps) => {
                     createdAt: new Date(),
                     updatedAt: new Date(),
                     authorId: user.id,
-                    authorName: user.username || "",
                     authorEmail: user.email!,
-                    authorAvatar: user.picture || "",
+                    authorName: user.given_name || "John Doe",
+                    authorAvatar: getAvatar(user.picture, user.email!),
                     channelId: channelId,
                 }
+
+                queryClient.setQueryData<InfiniteMessages>(
+                    ["message.list", channelId],
+                    (existingData) => {
+                        if (!existingData) {
+                            return {
+                                pages: [
+                                    {
+                                        items: [optimisticMessage],
+                                        nextCursor: undefined,
+                                    },
+                                ],
+                                pageParams: [undefined],
+                            } satisfies InfiniteMessages
+                        }
+
+                        const firstPage = existingData.pages[0] ?? {
+                            items: [],
+                            nextCursor: undefined,
+                        }
+
+                        const updatedFirstPage: MessagePage = {
+                            ...firstPage,
+                            items: [optimisticMessage, ...firstPage.items],
+                        }
+
+                        return {
+                            ...existingData,
+                            pages: [updatedFirstPage, ...existingData.pages.slice(1)],
+                        }
+                    }
+                )
+
+                return {
+                    prevData: previousData,
+                    tempId,
+                }
+
+                /* TODO: 2:40:26 */
             },
             onSuccess: async () => {
                 await queryClient.invalidateQueries({
