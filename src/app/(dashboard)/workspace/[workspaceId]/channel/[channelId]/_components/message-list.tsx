@@ -13,7 +13,6 @@ import {ChevronDownIcon, Loader2, MessageCircleIcon} from "lucide-react";
 const MessageList = () => {
     const [hasInitialScrolled, setHasInitialScrolled] = useState<boolean>(false);
     const [isAtBottom, setIsAtBottom] = useState<boolean>(false);
-    const [newMessage, setNewMessage] = useState<boolean>(false);
 
     const scrollRef = useRef<HTMLDivElement | null>(null);
     const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -84,10 +83,7 @@ const MessageList = () => {
                     el.scrollTop = el.scrollHeight;
                 });
 
-                setNewMessage(false);
                 setIsAtBottom(true);
-            } else {
-                setNewMessage(true);
             }
         }
 
@@ -113,7 +109,6 @@ const MessageList = () => {
 
         bottomRef.current?.scrollIntoView({block: "end"})
 
-        setNewMessage(false);
         setIsAtBottom(true);
     };
 
@@ -195,7 +190,7 @@ const MessageList = () => {
                 {!isEmpty && isFetching && !isFetchingNextPage ? (
                     <div className={"py-2 text-center text-sm text-muted-foreground"}>
                         {/*Fetching...*/}
-                        {Array.from({ length: 3 }).map((_, index) => (
+                        {Array.from({ length: 9 }).map((_, index) => (
                             <div key={index} className={"flex items-center space-x-4 gap-3 mt-10"}>
                                 <Skeleton className={"h-12 w-12 rounded-full"} />
                                 <div className={"translate-y-[16px]"}>

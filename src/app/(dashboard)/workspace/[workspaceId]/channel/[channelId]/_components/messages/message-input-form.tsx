@@ -98,30 +98,63 @@ const MessageInputForm = ({ channelId, user }: iMessageInputFormProps) => {
                     }
                 )
 
-                return {
-                    prevData: previousData,
-                    tempId,
-                }
-
-                /* TODO: 2:40:26 */
-            },
-            onSuccess: async () => {
-                await queryClient.invalidateQueries({
-                    queryKey: orpc.message.list.key(),
-                });
+                // Form reset code
                 form.reset({
                     channelId: channelId,
                     content: ""
                 });
                 upload.clear()
                 setEditorKey((key) => key + 1)
-                // return toast.success("Message created successfully.", {
-                //     id: "create-message"
-                // });
+
+                return {
+                    previousData: previousData,
+                    tempId,
+                }
+
+                /* TODO: 2:40:26 */
             },
-            onError: async (error) => {
+            onSuccess: async (data, _variables, context) => {
+                queryClient.setQueryData<InfiniteMessages>(
+                    ["message.list", channelId],
+                    (existingData) => {
+                        if (!existingData) return existingData;
+
+                        const updatedPages = existingData.pages.map((page) => ({
+                            ...page,
+                            items: page.items.map((message) => message.id === context.tempId
+                                ? {...data}
+                                : message
+                            ),
+                        }))
+
+                        return {
+                            ...existingData,
+                            pages: updatedPages,
+                        }
+                    }
+                )
+
+                /*form.reset({
+                    channelId: channelId,
+                    content: ""
+                });
+                upload.clear()
+                setEditorKey((key) => key + 1)*/
+
+                return toast.success("Message created successfully.", {
+                    id: "create-message"
+                });
+            },
+            onError: async (_err, _variables, context) => {
+                if (context?.previousData) {
+                    queryClient.setQueryData(
+                        ["message.list", channelId],
+                        context.previousData
+                    )
+                }
+
                 return toast.error("Something went wrong.", {
-                    description: error.message,
+                    description: _err.message,
                     id: "create-message",
                 });
             },

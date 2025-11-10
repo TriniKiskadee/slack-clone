@@ -9,6 +9,7 @@ import {useParams} from "next/navigation";
 import {useQuery} from "@tanstack/react-query";
 import {orpc} from "@/lib/orpc";
 import {KindeUser} from "@kinde-oss/kinde-auth-nextjs";
+import {Skeleton} from "@/components/ui/skeleton";
 
 const ChannelMainPage = () => {
     const {channelId} = useParams<{channelId: string}>()
@@ -32,7 +33,18 @@ const ChannelMainPage = () => {
             {/* Main channel area*/}
             <div className={"flex flex-col flex-1 min-w-0"}>
                 {/* Channel header */}
-                <ChannelHeader channelName={data?.channelName}/>
+                {isLoading ? (
+                    <div className={"flex items-center justify-between h-14 px-4 border-b"}>
+                        <Skeleton className={"h-6 w-40"} />
+                        <div className={"flex items-center space-x-2"}>
+                            <Skeleton className={"h-8 w-[108px]"} />
+                            <Skeleton className={"h-8 w-[138px]"} />
+                            <Skeleton className={"size-8"} />
+                        </div>
+                    </div>
+                ) : (
+                    <ChannelHeader channelName={data?.channelName} />
+                )}
 
                 {/* Scrollable messages area */}
                 <div className={"flex-1 overflow-hidden mb-4"}>
