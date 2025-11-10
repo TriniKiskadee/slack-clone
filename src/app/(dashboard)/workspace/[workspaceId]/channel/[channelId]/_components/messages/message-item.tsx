@@ -4,6 +4,7 @@ import { formatDateWithOrdinal } from "@/lib/utils";
 import { Message } from "@/generated/prisma/client";
 import { getAvatar } from "@/lib/get-avatar";
 import SafeContent from "@/components/rich-text-editor/safe-content";
+import MessageHoverToolbar from "@/app/(dashboard)/workspace/[workspaceId]/channel/[channelId]/_components/toolbar";
 
 interface MessageItemProps {
     message: Message;
@@ -60,6 +61,7 @@ const MessageItem = ({ message }: MessageItemProps) => {
                     </div>
                 )}
             </div>
+            <MessageHoverToolbar />
         </div>
     );
 };

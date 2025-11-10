@@ -110,8 +110,6 @@ const MessageInputForm = ({ channelId, user }: iMessageInputFormProps) => {
                     previousData: previousData,
                     tempId,
                 }
-
-                /* TODO: 2:40:26 */
             },
             onSuccess: async (data, _variables, context) => {
                 queryClient.setQueryData<InfiniteMessages>(
