@@ -46,6 +46,7 @@ const RootLayout = ({children,}: Readonly<{ children: React.ReactNode; }>) => {
                     <Toaster
                         closeButton
                         position={"top-center"}
+                        richColors
                     />
                 </body>
             </html>

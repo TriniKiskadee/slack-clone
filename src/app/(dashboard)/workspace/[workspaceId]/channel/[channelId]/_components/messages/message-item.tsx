@@ -1,16 +1,21 @@
-import React from "react";
+import React, {useState} from "react";
 import Image from "next/image";
 import { formatDateWithOrdinal } from "@/lib/utils";
 import { Message } from "@/generated/prisma/client";
 import { getAvatar } from "@/lib/get-avatar";
 import SafeContent from "@/components/rich-text-editor/safe-content";
 import MessageHoverToolbar from "@/app/(dashboard)/workspace/[workspaceId]/channel/[channelId]/_components/toolbar";
+import EditMessage
+    from "@/app/(dashboard)/workspace/[workspaceId]/channel/[channelId]/_components/toolbar/edit-message";
 
 interface MessageItemProps {
     message: Message;
+    currentUserId: string;
 }
 
-const MessageItem = ({ message }: MessageItemProps) => {
+const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
+    const [isEditing, setIsEditing] = useState<boolean>(false)
+
     return (
         <div className={"flex space-x-3 relative p-3 rounded-lg group hover:bg-muted/50"}>
             <Image
@@ -40,28 +45,38 @@ const MessageItem = ({ message }: MessageItemProps) => {
                 </div>
 
                 {/* Message */}
-                <SafeContent
-                    content={
-                        message.content ? JSON.parse(message.content) : { type: "doc", content: [] }
-                    }
-                    className={
-                        "text-sm break-words prose dark:prose-invert max-w-none mark:text-primary"
-                    }
-                />
-
-                {message.imageUrl && (
-                    <div className={"mt-3"}>
-                        <Image
-                            src={message.imageUrl}
-                            alt={"Message attachment"}
-                            width={512}
-                            height={512}
-                            className={"rounded-md max-h-[320px] w-auto object-contain"}
+                {isEditing ? (
+                    <EditMessage
+                        message={message}
+                        onCancel={() => setIsEditing(false)}
+                        onSave={() => setIsEditing(false)}
+                    />
+                ) : (
+                    <>
+                        <SafeContent
+                            content={message.content ? JSON.parse(message.content) : { type: "doc", content: [] }                        }
+                            className={"text-sm break-words prose dark:prose-invert max-w-none mark:text-primary"}
                         />
-                    </div>
+
+                        {message.imageUrl && (
+                            <div className={"mt-3"}>
+                                <Image
+                                    src={message.imageUrl}
+                                    alt={"Message attachment"}
+                                    width={512}
+                                    height={512}
+                                    className={"rounded-md max-h-[320px] w-auto object-contain"}
+                                />
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
-            <MessageHoverToolbar />
+            <MessageHoverToolbar
+                messageId={message.id}
+                canEdit={message.authorId === currentUserId}
+                onEdit={() => setIsEditing(true)}
+            />
         </div>
     );
 };

@@ -1,23 +1,53 @@
 import React from 'react'
 import {Button} from "@/components/ui/button";
 import {MessageSquareTextIcon, PencilIcon} from "lucide-react";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 
-const MessageHoverToolbar = () => {
+interface ToolbarProps {
+    messageId: string;
+    canEdit: boolean;
+    onEdit: () => void;
+}
+
+const MessageHoverToolbar = ({messageId, canEdit, onEdit}: ToolbarProps) => {
     return (
-        <div className={"absolute -right-2 -top-3 items-center gap-1 rounded-md border border-gray-200 bg-white/95 px-1.5 py-1 shadow-sm backdrop-blue transition-opacity opacity-0 group-hover:opacity-100 dark:border-neutral-800 dark:bg-neutral-900/90"}>
-            <Button
-                variant={"ghost"}
-                size={"icon"}
-            >
-                <PencilIcon className={"size-4"} />
-            </Button>
-            <Button
-                variant={"ghost"}
-                size={"icon"}
-            >
-                <MessageSquareTextIcon className={"size-4"} />
-            </Button>
-        </div>
+        <TooltipProvider>
+            <div className={"absolute -right-2 -top-3 items-center gap-1 rounded-md border border-gray-200 bg-white/95 px-1.5 py-1 shadow-sm backdrop-blue transition-opacity opacity-0 group-hover:opacity-100 dark:border-neutral-800 dark:bg-neutral-900/90"}>
+                <Tooltip delayDuration={500}>
+                    <TooltipTrigger asChild>
+                        {canEdit && (
+                            <Button
+                                variant={"ghost"}
+                                size={"icon"}
+                                onClick={onEdit}
+                            >
+                                <PencilIcon className={"size-4"} />
+                            </Button>
+                        )}
+                    </TooltipTrigger>
+                    <TooltipContent side={"top"}>
+                        <p>
+                            Update
+                        </p>
+                    </TooltipContent>
+                </Tooltip>
+                <Tooltip delayDuration={500}>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant={"ghost"}
+                            size={"icon"}
+                        >
+                            <MessageSquareTextIcon className={"size-4"} />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side={"top"}>
+                        <p>
+                            Edit
+                        </p>
+                    </TooltipContent>
+                </Tooltip>
+            </div>
+        </TooltipProvider>
     )
 }
 export default MessageHoverToolbar

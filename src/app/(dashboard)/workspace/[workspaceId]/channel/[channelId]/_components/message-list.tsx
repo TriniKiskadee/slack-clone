@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import MessageItem from "@/app/(dashboard)/workspace/[workspaceId]/channel/[channelId]/_components/messages/message-item";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import {useInfiniteQuery, useSuspenseQuery} from "@tanstack/react-query";
 import { orpc } from "@/lib/orpc";
 import { useParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -46,6 +46,8 @@ const MessageList = () => {
             staleTime: 30_000,
             refetchOnWindowFocus: false,
         });
+
+    const {data: {user}} = useSuspenseQuery(orpc.workspace.list.queryOptions())
 
     const handleScroll = () => {
         const el = scrollRef.current;
@@ -181,6 +183,7 @@ const MessageList = () => {
                         <MessageItem
                             key={message.id}
                             message={message}
+                            currentUserId={user.id}
                         />
                     ))
                 )}

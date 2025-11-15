@@ -12,3 +12,5 @@ export const updateMessageSchema = z.object({
     messageId: z.string(),
     content: z.string(),
 })
+
+export type UpdateMessageSchemaType = z.infer<typeof updateMessageSchema>
