@@ -42,6 +42,10 @@ const MessageInputForm = ({ channelId, user }: iMessageInputFormProps) => {
     const createMessageMutation = useMutation(
         orpc.message.create.mutationOptions({
             onMutate: async (data) => {
+                toast.loading("Sending your message...", {
+                    id: "create-message"
+                });
+
                 await queryClient.cancelQueries({
                     queryKey: ["message.list", channelId],
                 })
@@ -64,6 +68,7 @@ const MessageInputForm = ({ channelId, user }: iMessageInputFormProps) => {
                     authorName: user.given_name || "John Doe",
                     authorAvatar: getAvatar(user.picture, user.email!),
                     channelId: channelId,
+                    threadId: data.threadId ?? null // TODO: double check if thread ID is null here
                 }
 
                 queryClient.setQueryData<InfiniteMessages>(
@@ -139,7 +144,7 @@ const MessageInputForm = ({ channelId, user }: iMessageInputFormProps) => {
                 upload.clear()
                 setEditorKey((key) => key + 1)*/
 
-                return toast.success("Message created successfully.", {
+                return toast.success("Message sent successfully.", {
                     id: "create-message"
                 });
             },
@@ -151,7 +156,7 @@ const MessageInputForm = ({ channelId, user }: iMessageInputFormProps) => {
                     )
                 }
 
-                return toast.error("Something went wrong.", {
+                return toast.error("Oops! Something went wrong.", {
                     description: _err.message,
                     id: "create-message",
                 });

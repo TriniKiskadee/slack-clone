@@ -1,21 +1,27 @@
 import React from "react";
 import RichTextEditor from "@/components/rich-text-editor/editor";
 import { Button } from "@/components/ui/button";
-import { ImageIcon, SendIcon } from "lucide-react";
+import { ImageIcon, Loader2Icon, SendIcon } from "lucide-react";
 import ImageUploadModal from "@/components/rich-text-editor/image-upload-modal";
-import {UseAttachmentUploadType} from "@/hooks/use-attachment-upload";
-import AttachmentChip
-    from "@/app/(dashboard)/workspace/[workspaceId]/channel/[channelId]/_components/messages/attachment-chip";
+import { UseAttachmentUploadType } from "@/hooks/use-attachment-upload";
+import AttachmentChip from "@/app/(dashboard)/workspace/[workspaceId]/channel/[channelId]/_components/messages/attachment-chip";
+import { cn } from "@/lib/utils";
 
 interface iMessageComposerProps {
     value: string;
     onChange: (next: string) => void;
     onSubmit: () => void;
     isSubmitting?: boolean;
-    upload: UseAttachmentUploadType
+    upload: UseAttachmentUploadType;
 }
 
-const MessageComposer = ({ value, onChange, onSubmit, isSubmitting, upload }: iMessageComposerProps) => {
+const MessageComposer = ({
+    value,
+    onChange,
+    onSubmit,
+    isSubmitting,
+    upload,
+}: iMessageComposerProps) => {
     return (
         <>
             <RichTextEditor
@@ -27,8 +33,21 @@ const MessageComposer = ({ value, onChange, onSubmit, isSubmitting, upload }: iM
                         size={"sm"}
                         onClick={onSubmit}
                     >
-                        <SendIcon className={"size-4 mr-1"} />
-                        Send
+                        {isSubmitting ? (
+                            <>
+                                <Loader2Icon
+                                    className={
+                                        "size-4 animate-spin transition duration-300"
+                                    }
+                                />
+                                Sending
+                            </>
+                        ) : (
+                            <>
+                                <SendIcon className={"size-4 mr-1"} />
+                                Send
+                            </>
+                        )}
                     </Button>
                 }
                 footerLeft={
@@ -59,4 +78,5 @@ const MessageComposer = ({ value, onChange, onSubmit, isSubmitting, upload }: iM
         </>
     );
 };
+
 export default MessageComposer;

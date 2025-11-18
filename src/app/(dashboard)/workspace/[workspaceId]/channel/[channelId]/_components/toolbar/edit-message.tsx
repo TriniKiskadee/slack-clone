@@ -1,3 +1,5 @@
+"use client"
+
 import React from 'react'
 import {Form, FormControl, FormField, FormItem, FormMessage} from "@/components/ui/form";
 import {useForm} from "react-hook-form";
@@ -124,5 +126,3 @@ const EditMessage = ({message, onCancel, onSave}: EditMessageProps) => {
     )
 }
 export default EditMessage
-
-/* TODO: 4:33:16 */

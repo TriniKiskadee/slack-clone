@@ -1,23 +1,48 @@
-import React, {useState} from "react";
+import React, { useCallback, useState } from "react";
 import Image from "next/image";
 import { formatDateWithOrdinal } from "@/lib/utils";
-import { Message } from "@/generated/prisma/client";
 import { getAvatar } from "@/lib/get-avatar";
 import SafeContent from "@/components/rich-text-editor/safe-content";
 import MessageHoverToolbar from "@/app/(dashboard)/workspace/[workspaceId]/channel/[channelId]/_components/toolbar";
-import EditMessage
-    from "@/app/(dashboard)/workspace/[workspaceId]/channel/[channelId]/_components/toolbar/edit-message";
+import EditMessage from "@/app/(dashboard)/workspace/[workspaceId]/channel/[channelId]/_components/toolbar/edit-message";
+import { MessageListItem } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { MessageSquareIcon } from "lucide-react";
+import { useThread } from "@/providers/thread-provider";
+import { orpc } from "@/lib/orpc";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface MessageItemProps {
-    message: Message;
+    message: MessageListItem;
     currentUserId: string;
 }
 
 const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
-    const [isEditing, setIsEditing] = useState<boolean>(false)
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const { openThread } = useThread();
+    const queryClient = useQueryClient();
+
+    const prefetchedThread = useCallback(() => {
+        const options = orpc.message.thread.list.queryOptions({
+            input: {
+                messageId: message.id,
+            },
+        });
+
+        queryClient
+            .prefetchQuery({
+                ...options,
+                staleTime: 60_000,
+            })
+            .catch(() => {});
+    }, [message.id, queryClient]);
 
     return (
-        <div className={"flex space-x-3 relative p-3 rounded-lg group hover:bg-muted/50"}>
+        <div
+            className={
+                "flex space-x-3 relative p-3 rounded-lg group hover:bg-muted/50"
+            }
+        >
             <Image
                 src={getAvatar(message.authorAvatar, message.authorEmail)}
                 alt={"User Image"}
@@ -27,7 +52,9 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
             />
             <div className={"flex-1 space-y-1 min-w-0"}>
                 <div className={"flex items-center gap-x-2"}>
-                    <p className={"font-medium leading-none"}>{message.authorName}</p>
+                    <p className={"font-medium leading-none"}>
+                        {message.authorName}
+                    </p>
                     <p className={"text-xs text-muted-foreground leading-none"}>
                         {/*{new Intl.DateTimeFormat("en-US", {
                             day: "numeric",
@@ -54,8 +81,14 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
                 ) : (
                     <>
                         <SafeContent
-                            content={message.content ? JSON.parse(message.content) : { type: "doc", content: [] }                        }
-                            className={"text-sm break-words prose dark:prose-invert max-w-none mark:text-primary"}
+                            content={
+                                message.content
+                                    ? JSON.parse(message.content)
+                                    : { type: "doc", content: [] }
+                            }
+                            className={
+                                "text-sm break-words prose dark:prose-invert max-w-none mark:text-primary"
+                            }
                         />
 
                         {message.imageUrl && (
@@ -65,9 +98,40 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
                                     alt={"Message attachment"}
                                     width={512}
                                     height={512}
-                                    className={"rounded-md max-h-[320px] w-auto object-contain"}
+                                    className={
+                                        "rounded-md max-h-[320px] w-auto object-contain"
+                                    }
                                 />
                             </div>
+                        )}
+
+                        {message.repliesCount > 0 && (
+                            <Button
+                                type={"button"}
+                                onClick={() => openThread(message.id)}
+                                variant={"ghost"}
+                                size={"sm"}
+                                className={
+                                    "mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border cursor-pointer"
+                                }
+                                onMouseEnter={prefetchedThread}
+                                onFocus={prefetchedThread}
+                            >
+                                <MessageSquareIcon className={"size-3.5"} />
+                                <span>
+                                    {message.repliesCount}{" "}
+                                    {message.repliesCount === 1
+                                        ? "reply"
+                                        : "replies"}
+                                </span>
+                                <span
+                                    className={
+                                        "opacity-0 group-hover:opacity-100 transition-opacity"
+                                    }
+                                >
+                                    View Thread
+                                </span>
+                            </Button>
                         )}
                     </>
                 )}
