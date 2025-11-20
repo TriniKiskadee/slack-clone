@@ -4,12 +4,15 @@ import { formatDateWithOrdinal } from "@/lib/utils";
 import { getAvatar } from "@/lib/get-avatar";
 import { Message } from "@/generated/prisma/client";
 import SafeContent from "@/components/rich-text-editor/safe-content";
+import ReactionsBar from "../messages/reactions/reactions-bar";
+import { MessageListItem } from "@/lib/types";
 
 interface ThreadReplyProps {
-	message: Message;
+	message: MessageListItem;
+	selectedThreadId: string;
 }
 
-const ThreadReply = ({ message }: ThreadReplyProps) => {
+const ThreadReply = ({ message, selectedThreadId }: ThreadReplyProps) => {
 	return (
 		<div className={"flex space-x-3 p-3 hover:bg-muted/30 rounded-lg"}>
 			<Image
@@ -48,6 +51,12 @@ const ThreadReply = ({ message }: ThreadReplyProps) => {
 						/>
 					</div>
 				)}
+
+				<ReactionsBar
+					reactions={message.reactions}
+					messageId={message.id}
+					context={{ type: "thread", threadId: selectedThreadId }}
+				/>
 			</div>
 		</div>
 	);

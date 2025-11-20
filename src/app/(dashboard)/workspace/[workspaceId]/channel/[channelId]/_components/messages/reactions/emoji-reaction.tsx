@@ -13,11 +13,15 @@ import {
 import { SmilePlusIcon } from "lucide-react";
 import React, { useState } from "react";
 
-const EmojiReaction = () => {
+interface EmojiReactionProps {
+	onSelect: (emoji: string) => void;
+}
+
+const EmojiReaction = ({ onSelect }: EmojiReactionProps) => {
 	const [open, setOpen] = useState<boolean>(false);
 
 	const handleEmojiSelect = (emoji: string) => {
-		console.log(emoji);
+		onSelect(emoji);
 		setOpen(false);
 	};
 	return (

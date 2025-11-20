@@ -96,9 +96,16 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
 						)}
 
 						{/* Reactions Picker */}
-						<ReactionsBar />
+						<ReactionsBar
+							messageId={message.id}
+							reactions={message.reactions}
+							context={{
+								type: "list",
+								channelId: message.channelId!,
+							}}
+						/>
 
-						{message.repliesCount > 0 && (
+						{message.replyCount > 0 && (
 							<Button
 								type={"button"}
 								onClick={() => openThread(message.id)}
@@ -112,8 +119,8 @@ const MessageItem = ({ message, currentUserId }: MessageItemProps) => {
 							>
 								<MessageSquareIcon className={"size-3.5"} />
 								<span>
-									{message.repliesCount}{" "}
-									{message.repliesCount === 1
+									{message.replyCount}{" "}
+									{message.replyCount === 1
 										? "reply"
 										: "replies"}
 								</span>
