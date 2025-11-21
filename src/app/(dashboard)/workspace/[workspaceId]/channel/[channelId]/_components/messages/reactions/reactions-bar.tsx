@@ -208,22 +208,22 @@ const ReactionsBar = ({ messageId, reactions, context }: ReactionsBarProps) => {
 	};
 
 	return (
-		<div className={"group relative mt-1 flex items-center gap-1"}>
-			{(reactions ?? []).map((reaction) => (
+		<div className={"group mt-1 flex items-center gap-1"}>
+			{reactions?.map((reaction) => (
 				<Button
 					key={reaction.emoji}
 					type={"button"}
 					variant={"secondary"}
 					size={"sm"}
 					className={cn(
-						"h-6 px-2 text-xs",
+						"h-6 px-2 text-xs rounded-full justify-center",
 						reaction.reactedByMe &&
 							"bg-primary/10 border border-primary",
 					)}
 					onClick={() => handleToggle(reaction.emoji)}
 				>
 					<span>{reaction.emoji}</span>
-					<span>{reaction.count === 1 ? "" : reaction.count}</span>
+					<span>{reaction.count}</span>
 				</Button>
 			))}
 			<EmojiReaction onSelect={handleToggle} />
@@ -232,3 +232,5 @@ const ReactionsBar = ({ messageId, reactions, context }: ReactionsBarProps) => {
 };
 
 export default ReactionsBar;
+
+// TODO: 11:33:46

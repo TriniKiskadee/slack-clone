@@ -46,5 +46,3 @@ const EmojiReaction = ({ onSelect }: EmojiReactionProps) => {
 };
 
 export default EmojiReaction;
-
-// WIP: 8:05:00

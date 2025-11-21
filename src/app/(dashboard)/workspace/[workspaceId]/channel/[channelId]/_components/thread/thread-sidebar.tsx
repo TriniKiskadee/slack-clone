@@ -12,6 +12,7 @@ import { getAvatar } from "@/lib/get-avatar";
 import SafeContent from "@/components/rich-text-editor/safe-content";
 import { KindeUser } from "@kinde-oss/kinde-auth-nextjs";
 import ThreadSidebarSkeleton from "@/app/(dashboard)/workspace/[workspaceId]/channel/[channelId]/_components/thread/thread-sidebar-skeleton";
+import SummarizeThread from "./summerize-thread";
 
 interface ThreadSidebarProps {
 	user: KindeUser<Record<string, unknown>>;
@@ -142,6 +143,7 @@ const ThreadSidebar = ({ user }: ThreadSidebarProps) => {
 					<span>Thread</span>
 				</div>
 				<div className={"flex items-center gap-2"}>
+					<SummarizeThread messageId={selectedThreadId!} />
 					<Button
 						variant={"outline"}
 						size={"icon"}
