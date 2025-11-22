@@ -1,14 +1,30 @@
-import arcjet, { sensitiveInfo, slidingWindow } from "@/lib/arkjet";
+import aj, {
+	detectBot,
+	sensitiveInfo,
+	shield,
+	slidingWindow,
+} from "@/lib/arkjet";
 import { base } from "@/app/middlewares/base";
 import { KindeUser } from "@kinde-oss/kinde-auth-nextjs";
 
-const buildStandardAj = () =>
-	arcjet
+const buildAiAj = () =>
+	aj
+		.withRule(
+			shield({
+				mode: "LIVE",
+			}),
+		)
 		.withRule(
 			slidingWindow({
 				mode: "LIVE",
 				interval: "1m",
-				max: 2,
+				max: 3,
+			}),
+		)
+		.withRule(
+			detectBot({
+				mode: "LIVE",
+				allow: ["CATEGORY:SEARCH_ENGINE", "CATEGORY:PREVIEW"],
 			}),
 		)
 		.withRule(
@@ -18,13 +34,13 @@ const buildStandardAj = () =>
 			}),
 		);
 
-export const heavyWriteSecurityMiddleware = base
+export const aiSecurityMiddleware = base
 	.$context<{
 		request: Request;
 		user: KindeUser<Record<string, unknown>>;
 	}>()
 	.middleware(async ({ context, next, errors }) => {
-		const decision = await buildStandardAj().protect(context.request, {
+		const decision = await buildAiAj().protect(context.request, {
 			userId: context.user.id,
 		});
 
@@ -38,7 +54,19 @@ export const heavyWriteSecurityMiddleware = base
 
 			if (decision.reason.isRateLimit()) {
 				throw errors.RATE_LIMITED({
-					message: "Too may impactful changes. Please slow down.",
+					message: "Too many requests. Please wait and try again.",
+				});
+			}
+
+			if (decision.reason.isBot()) {
+				throw errors.UNAUTHORIZED({
+					message: "Automated traffic blocked.",
+				});
+			}
+			
+			if (decision.reason.isShield()) {
+				throw errors.RATE_LIMITED({
+					message: "Request blocked by security policy (WAF)",
 				});
 			}
 
